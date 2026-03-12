@@ -1,0 +1,40 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Build IPA
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Select Xcode
+        run: sudo xcode-select -switch /Applications/Xcode.app
+
+      - name: Build
+        run: |
+          xcodebuild \
+          -scheme NFCWallet \
+          -sdk iphoneos \
+          -configuration Release \
+          archive \
+          -archivePath $PWD/build/NFCWallet.xcarchive
+
+      - name: Export IPA
+        run: |
+          xcodebuild -exportArchive \
+          -archivePath $PWD/build/NFCWallet.xcarchive \
+          -exportOptionsPlist ExportOptions.plist \
+          -exportPath $PWD/build
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v3
+        with:
+          name: NFCWallet
+          path: build/*.ipa
